@@ -5,15 +5,23 @@ $(function () {
   const $section = $('main > section');
   // console.log($window, $sideDot, $section);
 
-  // 섹션별 y축 위치값 구하기
-  const sec1Pos = $section.eq(0).offset().top;
-  const sec2Pos = $section.eq(1).offset().top;
-  const sec3Pos = $section.eq(2).offset().top;
-  const sec4Pos = $section.eq(3).offset().top;
-  console.log(sec1Pos, sec2Pos, sec3Pos, sec4Pos);
+  let sec1Pos;
+  let sec2Pos;
+  let sec3Pos;
+  let sec4Pos;
+
+  function getPosition() {
+    // 섹션별 y축 위치값 구하기
+    sec1Pos = $section.eq(0).offset().top;
+    sec2Pos = $section.eq(1).offset().top;
+    sec3Pos = $section.eq(2).offset().top;
+    sec4Pos = $section.eq(3).offset().top;
+    console.log(sec1Pos, sec2Pos, sec3Pos, sec4Pos);
+  }
 
   let secIdx = 0;
   updateDot();
+  getPosition();
 
   // 스크롤 값 비교하기
   $window.on('scroll', function () {
@@ -41,23 +49,59 @@ $(function () {
   $sideDot.on('click', function (e) {
     e.preventDefault();
     secIdx = $(this).index();
-    moveSection();
+    moveSection(secIdx);
   });
 
-  function moveSection() {
-    $('html, body').animate(
-      {
-        scrollTop: $section.eq(secIdx).offset().top,
-      },
-      400
-    );
+  function moveSection(index) {
+    $('html, body')
+      .stop()
+      .animate(
+        {
+          scrollTop: $section.eq(index).offset().top,
+        },
+        400
+      );
   }
 
   const $btnTop = $('.btn-top');
   // TOP버튼을 클릭했을 때
   $btnTop.on('click', function (e) {
     e.preventDefault();
-    moveSection();
+    moveSection(0);
+  });
+
+  // 화면이 리사이징 될 때
+  $window.on('resize', function () {
+    // y위치값을 다시 계산
+    getPosition();
+    moveSection(secIdx);
+  });
+
+  $window.on('wheel', function (e) {
+    // 움직이는 중이라면 실행 종료
+    if ($('html').is(':animated')) {
+      return;
+    }
+
+    if (e.originalEvent.deltaY < 0) {
+      // 휠을 올린 상황
+      // 위로 이동하겠다는 의사표시
+      // 위로 이동하겠다는 건 secIdx값을 줄이는 것, 단 0이하로 줄이면 안된다
+      if (secIdx === 0) {
+        return;
+      } else {
+        secIdx--;
+      }
+    } else {
+      // 휠을 내린 상황
+      if (secIdx === 3) {
+        return;
+      } else {
+        secIdx++;
+      }
+    }
+    console.log(secIdx);
+    moveSection(secIdx);
   });
 
   // 기본 동작 테스트
